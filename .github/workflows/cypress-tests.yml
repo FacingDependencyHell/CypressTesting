@@ -1,0 +1,48 @@
+# .github/workflows/cypress-tests.yml
+name: Cypress Tests
+
+# Trigger manually or on specific events
+on:
+  workflow_dispatch: # Manual trigger
+  # Uncomment below to also run on pushes to main
+  # push:
+  #   branches: [ main ]
+
+jobs:
+  cypress-tests:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Run Cypress tests
+        uses: cypress-io/github-action@v6
+        with:
+          # Since you're testing a live website, no need to start a server
+          wait-on: 'https://vladislavbouska.cz'
+          wait-on-timeout: 60
+          browser: chrome
+          headless: true
+        env:
+          # Optional: Record tests to Cypress Dashboard (requires setup)
+          # CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
+          
+      # Optional: Upload screenshots/videos if tests fail
+      - name: Upload artifacts on failure
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: cypress-artifacts
+          path: |
+            cypress/screenshots
+            cypress/videos
